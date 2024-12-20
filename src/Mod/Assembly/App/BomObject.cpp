@@ -239,6 +239,43 @@ void BomObject::addObjectToBom(App::DocumentObject* obj, size_t row, std::string
         else if (columnName == "Quantity") {
             setCell(App::CellAddress(row, col), std::to_string(1).c_str());
         }
+        else if (columnName.find(" (auto)") != std::string::npos) {
+            // extract column title
+            std::string baseName = columnName.substr(0, columnName.find(" (auto)"));
+            Base::Console().Log("Checking property: %s\n",
+                                baseName.c_str());  // Debug: Property name
+
+            App::Property* prop = obj->getPropertyByName(baseName.c_str());
+            if (prop) {
+                std::string propertyValue;
+
+                // check property type
+                if (auto* intProp = dynamic_cast<App::PropertyInteger*>(prop)) {
+                    propertyValue = std::to_string(intProp->getValue());
+                }
+                else if (auto* floatProp = dynamic_cast<App::PropertyFloat*>(prop)) {
+                    propertyValue = std::to_string(floatProp->getValue());
+                }
+                else if (auto* stringProp = dynamic_cast<App::PropertyString*>(prop)) {
+                    propertyValue = stringProp->getValue();
+                }
+                else if (auto* boolProp = dynamic_cast<App::PropertyBool*>(prop)) {
+                    propertyValue = boolProp->getValue() ? "True" : "False";
+                }
+                else {
+                    propertyValue = "<Unsupported Property Type>";
+                }
+
+                Base::Console().Log("Property value: %s\n",
+                                    propertyValue.c_str());  // Debug: Property value
+                setCell(App::CellAddress(row, col), propertyValue.c_str());
+            }
+            else {
+                // property not available
+                Base::Console().Warning("Property not found: %s\n", baseName.c_str());
+                setCell(App::CellAddress(row, col), "n/a");
+            }
+        }
         else {
             // load custom data if any.
             for (auto& el : dataElements) {
