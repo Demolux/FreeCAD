@@ -160,7 +160,6 @@ class TaskAssemblyCreateBom(QtCore.QObject):
         self.updateColumnList()
 
     def accept(self):
-        self.updateColumnList()
         self.deactivate()
         App.closeActiveTransaction()
 
@@ -335,11 +334,7 @@ class TaskAssemblyCreateBom(QtCore.QObject):
         else:
             commands = 'bomObj = App.activeDocument().addObject("Assembly::BomObject", "Bill of Materials")'
         Gui.doCommand(commands)
-
-        bom_objects = [
-            obj for obj in App.ActiveDocument.Objects if obj.TypeId == "Assembly::BomObject"
-        ]
-        self.bomObj = bom_objects[-1]
+        self.bomObj = Gui.doCommandEval("bomObj")
 
     def export(self):
         self.bomObj.recompute()
