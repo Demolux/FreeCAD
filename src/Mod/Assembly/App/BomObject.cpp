@@ -240,40 +240,53 @@ void BomObject::addObjectToBom(App::DocumentObject* obj, size_t row, std::string
             setCell(App::CellAddress(row, col), std::to_string(1).c_str());
         }
         else if (columnName.find(" (auto)") != std::string::npos) {
-            // extract column title
+            // extract the actual name
             std::string baseName = columnName.substr(0, columnName.find(" (auto)"));
-            Base::Console().Log("Checking property: %s\n",
-                                baseName.c_str());  // Debug: Property name
+            Base::Console().Log("Checking property: %s\n", baseName.c_str());
 
             App::Property* prop = obj->getPropertyByName(baseName.c_str());
             if (prop) {
                 std::string propertyValue;
+                Base::Console().Log("Found property: %s\n", baseName.c_str());
 
-                // check property type
+                // check property type get value
                 if (auto* intProp = dynamic_cast<App::PropertyInteger*>(prop)) {
+                    Base::Console().Log("Property is an Integer.\n");
                     propertyValue = std::to_string(intProp->getValue());
                 }
                 else if (auto* floatProp = dynamic_cast<App::PropertyFloat*>(prop)) {
+                    Base::Console().Log("Property is a Float.\n");
                     propertyValue = std::to_string(floatProp->getValue());
                 }
                 else if (auto* stringProp = dynamic_cast<App::PropertyString*>(prop)) {
+                    Base::Console().Log("Property is a String.\n");
                     propertyValue = stringProp->getValue();
                 }
                 else if (auto* boolProp = dynamic_cast<App::PropertyBool*>(prop)) {
+                    Base::Console().Log("Property is a Boolean.\n");
                     propertyValue = boolProp->getValue() ? "True" : "False";
                 }
+                else if (auto* vectorProp = dynamic_cast<App::PropertyVector*>(prop)) {
+                    Base::Console().Log("Property is a Vector.\n");
+                    propertyValue = "(" + std::to_string(vectorProp->getValue().x) + ", " +
+                                    std::to_string(vectorProp->getValue().y) + ", " +
+                                    std::to_string(vectorProp->getValue().z) + ")";
+                }
+                else if (auto* quantityProp = dynamic_cast<App::PropertyQuantity*>(prop)) {
+                    Base::Console().Log("Property is a Quantity.\n");
+                    propertyValue = std::to_string(quantityProp->getValue());
+                }
                 else {
+                    Base::Console().Log("Property type is unsupported.\n");
                     propertyValue = "<Unsupported Property Type>";
                 }
 
-                Base::Console().Log("Property value: %s\n",
-                                    propertyValue.c_str());  // Debug: Property value
+                Base::Console().Log("Property value: %s\n", propertyValue.c_str()); // debug: property value
                 setCell(App::CellAddress(row, col), propertyValue.c_str());
             }
             else {
-                // property not available
                 Base::Console().Warning("Property not found: %s\n", baseName.c_str());
-                setCell(App::CellAddress(row, col), "n/a");
+                setCell(App::CellAddress(row, col), "N/A");
             }
         }
         else {
